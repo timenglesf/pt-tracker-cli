@@ -1,20 +1,16 @@
 from typing import Annotated, List
 import typer
+from database import create_exercise, engine, Base
+from helper import create_list_display, argument_in_list
 
 ACTIONS = ["log", "display"]
 EXERCISES = ["pushups", "run", "plank", "all"]
 
 
-def create_list_display(list: List[str]) -> str:
-    display_str = ""
-    for s in list:
-        display_str += f"{s}/"
-
-    return display_str[:-1]
-
-
 ACTIONS_HELP_DISPLAY = f"Available actions: {create_list_display(ACTIONS)}"
 EXERCISES_HELP_DISPLAY = f"Available exercises: {create_list_display(EXERCISES)}"
+
+Base.metadata.create_all(engine)
 
 
 def main(
@@ -25,18 +21,31 @@ def main(
         ),
     ],
     exercise: Annotated[str, typer.Argument(help=EXERCISES_HELP_DISPLAY)],
+    value: Annotated[
+        int,
+        typer.Option(
+            help="Value of reps, time, or distance.",
+        ),
+    ] = 0,
 ):
-    if action.lower() not in ACTIONS:
-        print(
-            f"{action} is not an available action please use: {create_list_display(ACTIONS)}"
-        )
+    # Validate arguments
+    if not argument_in_list(action, ACTIONS):
         typer.Exit(1)
         return
+    if not argument_in_list(exercise, EXERCISES):
+        typer.Exit(1)
+        return
+
+    # Convert arguments to lowercase
     action = action.lower()
     exercise = exercise.lower()
+
+    # Main functionality
     if action == "log":
-        print("Logging exercise")
-        print("exercise")
+        if value == 0:
+            return
+        if exercise != "run":
+            create_exercise(exercise, value)
     elif action == "display":
         print("Displaying exercise")
     print("Check!")
