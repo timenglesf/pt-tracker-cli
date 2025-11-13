@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 
 
 def create_list_display(list: List[str]) -> str:
@@ -16,3 +17,7 @@ def argument_in_list(argument: str, list: List[str]) -> bool:
         )
         return False
     return True
+
+
+def readable_datetime(dt: datetime) -> str:
+    return dt.strftime("%B %d, %Y")

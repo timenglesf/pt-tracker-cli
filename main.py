@@ -1,6 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated
 import typer
-from database import create_exercise, engine, Base
+from sqlalchemy import create_engine
+
+# local imports
+from display import log_today
+from schema import DB, Base
 from helper import create_list_display, argument_in_list
 
 ACTIONS = ["log", "display"]
@@ -9,8 +13,6 @@ EXERCISES = ["pushups", "run", "plank", "all"]
 
 ACTIONS_HELP_DISPLAY = f"Available actions: {create_list_display(ACTIONS)}"
 EXERCISES_HELP_DISPLAY = f"Available exercises: {create_list_display(EXERCISES)}"
-
-Base.metadata.create_all(engine)
 
 
 def main(
@@ -27,7 +29,19 @@ def main(
             help="Value of reps, time, or distance.",
         ),
     ] = 0,
+    days: Annotated[
+        int,
+        typer.Option(
+            help="Display logs from previous days.",
+        ),
+    ] = 0,
 ):
+    # Create Connection to sqlite
+    engine = create_engine("sqlite:///db.sqlite")
+    Base.metadata.create_all(engine)
+
+    db = DB(engine)
+
     # Validate arguments
     if not argument_in_list(action, ACTIONS):
         typer.Exit(1)
@@ -45,11 +59,10 @@ def main(
         if value == 0:
             return
         if exercise != "run":
-            create_exercise(exercise, value)
+            db.insert_exercise(exercise, value)
     elif action == "display":
-        print("Displaying exercise")
-    print("Check!")
-    pass
+        if days == 0:
+            log_today(exercise, db)
 
 
 if __name__ == "__main__":
