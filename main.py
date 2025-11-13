@@ -3,9 +3,10 @@ import typer
 from sqlalchemy import create_engine
 
 # local imports
-from display import log_today
+import display
 from schema import DB, Base
 from helper import create_list_display, argument_in_list
+
 
 ACTIONS = ["log", "display"]
 EXERCISES = ["pushups", "run", "plank", "all"]
@@ -29,12 +30,12 @@ def main(
             help="Value of reps, time, or distance.",
         ),
     ] = 0,
-    days: Annotated[
-        int,
+    range: Annotated[
+        str,
         typer.Option(
-            help="Display logs from previous days.",
+            help="Display logged exercise data: today/week/month/year/all",
         ),
-    ] = 0,
+    ] = "today",
 ):
     # Create Connection to sqlite
     engine = create_engine("sqlite:///db.sqlite")
@@ -61,8 +62,11 @@ def main(
         if exercise != "run":
             db.insert_exercise(exercise, value)
     elif action == "display":
-        if days == 0:
-            log_today(exercise, db)
+        display_range_str = list(display.DISPLAY_RANGES.keys())
+        if not argument_in_list(range, display_range_str):
+            typer.Exit(1)
+            return
+        display.display_exercise(db, exercise, range)
 
 
 if __name__ == "__main__":

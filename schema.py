@@ -1,6 +1,6 @@
-from datetime import datetime, date, timezone
-from typing import List, Optional, Sequence
-from sqlalchemy import Engine, String, Text, between, select
+from datetime import datetime
+from typing import Optional, Sequence
+from sqlalchemy import Engine, String, between, select
 from sqlalchemy.orm import (
     DeclarativeBase,
     Session,
@@ -68,30 +68,3 @@ class DB:
             )
             results = session.scalars(stmt).all()
         return results
-
-
-# def insert_exercise(exercise_type: str, value: int):
-#     with Session(engine) as session:
-#         new_exercise = Exercise(
-#             date=datetime.now(),
-#             exercise=exercise_type,
-#             value=value,
-#         )
-#         session.add(new_exercise)
-#         session.commit()
-#         session.refresh(new_exercise)
-#     pass
-
-
-# def insert_run(exercise_type: str, value: int, distance: float):
-#     with Session(engine) as session:
-#         new_exercise = Exercise(
-#             date=datetime.now(),
-#             exercise=exercise_type,
-#             value=value,
-#             distance=distance,
-#         )
-#         session.add(new_exercise)
-#         session.commit()
-#         session.refresh(new_exercise)
-#     pass
