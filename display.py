@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import List
 
 from schema import DB
-from helper import readable_datetime
+from helper import readable_datetime, convert_seconds_to_minutes
 
 NOW = datetime.now()
 RANGE_INT = {
@@ -54,11 +54,36 @@ def display_exercise(db: DB, exercise: str, range: str):
         exercise_type=exercise, start_date=start_date, end_date=end_date
     )
     total_reps = 0
+    unit = "rep"
     for e in display_logs:
         total_reps += e.value
+        unit = e.unit
     if range == "today":
-        print(f"You did {total_reps} {exercise} on {readable_datetime(datetime.now())}")
+        if unit == "second":
+            if "exercise" == "run":
+                # TODO: Add distance
+                print(
+                    f"You ran for {display_formatted_time(total_reps)} on {readable_datetime(datetime.now())}"
+                )
+            else:
+                verb = "planked" if exercise == "plank" else "meditated"
+                print(
+                    f"You {verb} for {display_formatted_time(total_reps)} on {readable_datetime(datetime.now())}"
+                )
+        else:
+            print(
+                f"You did {total_reps} {exercise} on {readable_datetime(datetime.now())}"
+            )
     else:
         print(
             f"You have done {total_reps} {exercise} since {readable_datetime(start_date)}"
         )
+
+
+def display_formatted_time(sec: int) -> str:
+    minutes, seconds = convert_seconds_to_minutes(sec)
+    if minutes == 0 and seconds > 0:
+        return f"{seconds} seconds"
+    elif minutes > 0 and seconds == 0:
+        return f"{minutes} minutes"
+    return f"{minutes} minutes and {seconds} seconds"

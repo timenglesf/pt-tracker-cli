@@ -7,9 +7,16 @@ import display
 from schema import DB, Base
 from helper import create_list_display, argument_in_list
 
-
 ACTIONS = ["log", "display"]
-EXERCISES = ["pushups", "run", "plank", "all"]
+EXERCISES = [
+    "meditate",
+    "pushups",
+    "plank",
+    "run",
+    "situps",
+    "squats",
+    "all",
+]
 
 
 ACTIONS_HELP_DISPLAY = f"Available actions: {create_list_display(ACTIONS)}"
@@ -61,6 +68,8 @@ def main(
             return
         if exercise != "run":
             db.insert_exercise(exercise, value)
+        if exercise == "run":
+            print(f"We are logging a {exercise}")
     elif action == "display":
         display_range_str = list(display.DISPLAY_RANGES.keys())
         if not argument_in_list(range, display_range_str):
