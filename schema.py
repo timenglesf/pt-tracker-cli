@@ -1,13 +1,16 @@
 from datetime import datetime
 import json
 from typing import Optional, Sequence
-from sqlalchemy import Engine, String, between, select
+from sqlalchemy import Engine, String, Text, between, select
 from sqlalchemy.orm import (
     DeclarativeBase,
     Session,
     mapped_column,
     Mapped,
 )
+
+UNIT_REP = "rep"
+UNIT_SECOND = "second"
 
 
 class Base(DeclarativeBase):
@@ -18,10 +21,15 @@ class Exercise(Base):
     __tablename__ = "exercise"
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime]
-    exercise: Mapped[str] = mapped_column(String(10))
+
+    # keep this required so every row still has a "type"
+    exercise: Mapped[str] = mapped_column(String(20))  # bumped from 10 just in case
+    unit: Mapped[str] = mapped_column(String(10))
     value: Mapped[int]
-    unit: Mapped[str]
     distance: Mapped[Optional[float]]
+
+    # long, optional notes
+    note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"Exercise(id={self.id}, date={self.date}, exercise={self.exercise}, value={self.value})"
@@ -29,11 +37,13 @@ class Exercise(Base):
     def to_dict(self) -> dict:
         return {
             "id": self.id,
-            "date": self.date.isoformat(),  # JSON-friendly
+            "date": self.date.isoformat(),
+            "day_of_week": self.date.strftime("%A"),
             "exercise": self.exercise,
             "value": self.value,
             "unit": self.unit,
             "distance": self.distance,
+            "notes": self.note,
         }
 
 
@@ -41,10 +51,10 @@ class DB:
     def __init__(self, engine: Engine) -> None:
         self.engine = engine
 
-    def insert_exercise(self, exercise_type: str, value: int):
-        unit = "rep"
+    def insert_exercise(self, exercise_type: str, value: int, note: str | None):
+        unit = UNIT_REP
         if exercise_type == "meditate" or exercise_type == "plank":
-            unit = "second"
+            unit = UNIT_SECOND
 
         with Session(self.engine) as session:
             new_exercise = Exercise(
@@ -52,19 +62,24 @@ class DB:
                 exercise=exercise_type,
                 value=value,
                 unit=unit,
+                note=note,
             )
             session.add(new_exercise)
             session.commit()
             session.refresh(new_exercise)
         pass
 
-    def insert_run(self, exercise_type: str, value: int, distance: float):
+    def insert_run(
+        self, exercise_type: str, value: int, distance: float, note: str | None
+    ):
         with Session(self.engine) as session:
             new_exercise = Exercise(
                 date=datetime.now(),
                 exercise=exercise_type,
                 value=value,
                 distance=distance,
+                unit=UNIT_SECOND,
+                note=note,
             )
             session.add(new_exercise)
             session.commit()
