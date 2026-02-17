@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from typing import List
+import typer
 
-from schema import DB
+from schema import DB, UNIT_REP, UNIT_SECOND
 from helper import readable_datetime, convert_seconds_to_minutes
 
 NOW = datetime.now()
@@ -59,25 +60,36 @@ def display_exercise(db: DB, exercise: str, range: str):
         total_reps += e.value
         unit = e.unit
     if range == "today":
-        if unit == "second":
-            if "exercise" == "run":
+        if unit == UNIT_SECOND:
+            if exercise == "run":
                 # TODO: Add distance
-                print(
+                typer.echo(
                     f"You ran for {display_formatted_time(total_reps)} on {readable_datetime(datetime.now())}"
                 )
             else:
                 verb = "planked" if exercise == "plank" else "meditated"
-                print(
+                typer.echo(
                     f"You {verb} for {display_formatted_time(total_reps)} on {readable_datetime(datetime.now())}"
                 )
         else:
-            print(
+            typer.echo(
                 f"You did {total_reps} {exercise} on {readable_datetime(datetime.now())}"
             )
     else:
-        print(
-            f"You have done {total_reps} {exercise} since {readable_datetime(start_date)}"
-        )
+        if unit == UNIT_SECOND:
+            if exercise == "run":
+                typer.echo(
+                    f"You ran for {display_formatted_time(total_reps)} since {readable_datetime(start_date)}"
+                )
+            else:
+                verb = "planked" if exercise == "plank" else "meditated"
+                typer.echo(
+                    f"You {verb} for {display_formatted_time(total_reps)} since {readable_datetime(start_date)}"
+                )
+        else:
+            typer.echo(
+                f"You have done {total_reps} {exercise} since {readable_datetime(start_date)}"
+            )
 
 
 def display_formatted_time(sec: int) -> str:
