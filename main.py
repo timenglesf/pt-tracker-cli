@@ -59,6 +59,9 @@ def main(
         bool,
         typer.Option("--note", help="Add a note (prompts after Enter)."),
     ] = False,
+    display_json: Annotated[
+        bool, typer.Option("--json", help="Display exercises in JSON format.")
+    ] = False,
 ):
     # ----------------------------------------------------------------
     # Database setup
@@ -131,6 +134,13 @@ def main(
         display_range_str = list(display.DISPLAY_RANGES.keys())
         if not argument_in_list(range, display_range_str):
             raise typer.Exit(1)
+
+        if display_json:
+            display.display_exercise_json(
+                db=db,
+                exercise=exercise,
+                range=range,
+            )
 
         display.display_exercise(db, exercise, range)
 

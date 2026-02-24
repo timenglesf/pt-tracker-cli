@@ -55,16 +55,19 @@ def display_exercise(db: DB, exercise: str, range: str):
         exercise_type=exercise, start_date=start_date, end_date=end_date
     )
     total_reps = 0
+    distance = 0
     unit = "rep"
     for e in display_logs:
         total_reps += e.value
         unit = e.unit
+        if e.distance:
+            distance += e.distance
+    print(distance)
     if range == "today":
         if unit == UNIT_SECOND:
             if exercise == "run":
-                # TODO: Add distance
                 typer.echo(
-                    f"You ran for {display_formatted_time(total_reps)} on {readable_datetime(datetime.now())}"
+                    f"You ran {distance} miles in {display_formatted_time(total_reps)} on {readable_datetime(datetime.now())}"
                 )
             else:
                 verb = "planked" if exercise == "plank" else "meditated"
@@ -79,7 +82,7 @@ def display_exercise(db: DB, exercise: str, range: str):
         if unit == UNIT_SECOND:
             if exercise == "run":
                 typer.echo(
-                    f"You ran for {display_formatted_time(total_reps)} since {readable_datetime(start_date)}"
+                    f"You ran {distance} miles in {display_formatted_time(total_reps)} since {readable_datetime(start_date)}"
                 )
             else:
                 verb = "planked" if exercise == "plank" else "meditated"
@@ -90,6 +93,28 @@ def display_exercise(db: DB, exercise: str, range: str):
             typer.echo(
                 f"You have done {total_reps} {exercise} since {readable_datetime(start_date)}"
             )
+
+
+def display_exercise_json(db: DB, exercise: str, range: str):
+    datetime_range = DISPLAY_RANGES[range]
+    start_date = datetime_range[0]
+    end_date = datetime_range[1]
+
+    if exercise == "all":
+        typer.echo(
+            db.get_all_exercises_json(
+                start_date=start_date,
+                end_date=end_date,
+            )
+        )
+    else:
+        typer.echo(
+            db.get_exercise_json(
+                exercise_type=exercise,
+                start_date=start_date,
+                end_date=end_date,
+            )
+        )
 
 
 def display_formatted_time(sec: int) -> str:

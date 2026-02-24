@@ -101,6 +101,18 @@ class DB:
             results = session.scalars(stmt).all()
         return results
 
+    def get_all_exercises(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Sequence[Exercise]:
+        start = datetime.combine(start_date, datetime.min.time())
+        end = datetime.combine(end_date, datetime.max.time())
+        with Session(self.engine) as session:
+            stmt = select(Exercise).where(between(Exercise.date, start, end))
+            results = session.scalars(stmt).all()
+        return results
+
     def get_exercise_json(
         self,
         exercise_type: str,
@@ -113,5 +125,16 @@ class DB:
         Returns the same data as get_exercise(), but serialized to JSON.
         """
         exercises = self.get_exercise(exercise_type, start_date, end_date)
+        data = [e.to_dict() for e in exercises]
+        return json.dumps(data, indent=indent)
+
+    def get_all_exercises_json(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        *,
+        indent: int = 2,
+    ) -> str:
+        exercises = self.get_all_exercises(start_date, end_date)
         data = [e.to_dict() for e in exercises]
         return json.dumps(data, indent=indent)
